@@ -167,8 +167,8 @@ classDiagram
 class HashTable{
     - std::vector&lt;bucket*&gt table
     + insert(id): bool // O(1)-O(N)
-    + update(id): bool // O(1)-O(N)
-    + delete(id): bool // O(1)-O(N)
+    + update(id): bool // O(1)
+    + delete(id): bool // O(1)
     + get(id): bucket* // O(1)
 }
 
@@ -194,8 +194,15 @@ class AVLTree{
 
 ### 9 - Evaluation Plan
 
-Some basic tests to perform would be to compare load times between structures when entering a new scene.
+Some basic tests to perform would be to compare load times between structures when entering a new scene. If performing `get` actions on the table is slowing down gamespeed a solution with less functionality may need to be explored. How many times the `HashTable` needs to be resized would be the most costly operation performance-wise, so putting breakpoints on that happening is another good way to gauge performance.
 
 ### 10 - Conclusion/Reflection
 
-# !!!!!!!!!! MAKE A PDF !!!!!!!!
+This design for a scene data table works because once it is set up, most actions performed on it have `O(1)` time complexity resulting in low performance overhead. While a `Sequence` or `AVLTree` are more performant to initialize at scale, because the other actions performed on the table significantly exceed that of the initialization, it performs better overall.
+
+The `SceneTable` implementation has a low level of abstractio with the core functions of searching and indexing being made as fast and as simple as possible. It is a simple idea, and a simple execution that results in a low performance overhead. The encapsulation is very good since the load times will be non-substantial, and the end user will not realize the extent of the behind-the-scenes work being done <a href="#1">[1]</a>. Other systems in the game will be able to easily access data for the `actor_id` resulting in a composition where the program does not have to know much of anything about how `SceneTable` even works. New methods can easily be implemented that take advantage of its simple `HashTable` derived CRUD operations.
+
+### Works Cited
+
+<div id="1">[1] Cahill, Vinny. *Learning to Program the Object-Oriented Way with C#*. pp221-249. https://link.springer.com/chapter/10.1007/978-1-4471-0115-4_7.</div>
+
