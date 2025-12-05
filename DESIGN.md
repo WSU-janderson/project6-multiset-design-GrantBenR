@@ -1,9 +1,11 @@
 ### 1.A - Introduction
 
-My design will model the scene dataset for a given loading zone. The datastructure will be based off of `HashTable<>`
+My design will model the scene dataset for a given loading zone. The `SceneTable` datastructure will be based off of `HashTable<>`
 
 ### 1.B - Background
-For some background, I am in the process of a Ghidra reverse engineering project for `Ys VI: The Ark of Napishtim` on Windows, and I got the idea from my work on that game. YS VI uses a system where game actors (characters, the player, enemies, etc.) have unique IDs that are used to fetch their dialogue, sprites, and other metadata. However, outside of the PS2 remake, the game lacks voice acting. As such, I have been trying to mod in voice acting to existing dialogue functions. In the original system, a pointer to the dialogue is found using the actor's ID and a scene identifier, and the lines are fed to the display in a single delimited string.
+For some background, I am in the process of a Ghidra reverse engineering project for `Ys VI: The Ark of Napishtim` on Windows, and I got the idea from my work on that game. 
+
+YS VI uses a system where game actors (characters, the player, enemies, etc.) have unique IDs that are used to fetch their dialogue, sprites, and other metadata. However, outside of the PS2 remake, the game lacks voice acting. As such, I have been trying to mod in voice acting to existing dialogue functions. In the original system, a pointer to the dialogue is found using the actor's ID and a scene identifier, and the lines are fed to the display in a single delimited string. Before going into function of the data structure:
 
 ### 1.C - Review of Terms
 - Scene
@@ -42,7 +44,7 @@ For some background, I am in the process of a Ghidra reverse engineering project
 
 ### 1.D - Design goal
 
-The
+The `SceneTable` structure should be able to efficiently fetch actor related data relevant to a scene when loading into that scene.
 
 ### 2 - Design Philosophy
 
@@ -50,7 +52,7 @@ The design of a system like this should be as simple and as lightweight as possi
 
 ### 3 - Core Operations
 
-> As a hashtable derivative you definitely want your basic CRUD actions
+> As a hashtable derivative, `SceneTable` uses the primary CRUD actions of
 - + insert(id): bool // O(1)-O(N)
 > At the intialization of a scene, all the necessary actors are inserted.
 - + update(id): bool // O(1)-O(N)
@@ -117,14 +119,14 @@ Actor*[] SceneTable::RenderSceneActors()
 
 
 
-> I have used mermaid class diagrams in prior classes, so here's a mermaid diagram for my structures.
+> I have used mermaid class diagrams in [prior classes](https://github.com/GrantRynders/Github-Extension-Project/blob/main/Readme.md), so that is what I am using here
 ```mermaid
 ---
 title: MultiSet Class Diagram
 ---
 classDiagram
-    SceneTable <|-- HashTable
-    SceneTable --|> Actor
+    SceneTable --|> HashTable : INHERITS FROM
+    SceneTable --|> Actor : CONTAINS
     class SceneTable{
         - std::vector&lt;Actor*&gt table
         + RenderSceneActors(): Actor*[]
@@ -150,13 +152,21 @@ classDiagram
 > Below are some comparisons to other possible data structures:
 
 ### 7.1 - `Sequence` Trade Offs
-> The main alternative for this multiset's underlying data-structure would be a `Sequence` (std::vector). A `HashTable` is already simply a more complex wrapper for a std::vector, so realistically, a `Sequence` would be more lightweight to implement.
+The main alternative for this multiset's underlying data-structure would be a `Sequence` (std::vector). A `HashTable` is already simply a more complex wrapper for a std::vector, so realistically, a `Sequence` would be more lightweight to implement.
 
-> However, assuming an actor has the same ID across scenes, then when making the vector you wouldn't have a clean `[1,2,3,4,5...]`of ID values (it would be something like `[t_200,t_700,t_567,t_890...]` which is not cleanly searchable). As such, either you would hash the values (which is just a `HashTable` `O(1)` search) or insert them in the order of appearance making the search complexity `O(N)`. As such, given that the IDs are unique, a `HashTable` is simply the better option, especially in large scenes with lots of actors <a href="#1">[1]</a>.
+However, assuming an actor has the same ID across scenes, then when making the vector you wouldn't have a clean `[1,2,3,4,5...]`of ID values (it would be something like `[t_200,t_700,t_567,t_890...]` which is not cleanly searchable). 
+
+As such, either you would hash the values (which is just a `HashTable` `O(1)` search) or insert them in the order of appearance making the search complexity `O(N)`. 
+
+As such, given that the IDs are unique, a `HashTable` is the better option, especially in large scenes with lots of actors <a href="#1">[1]</a>.
 
 ### 7.2 - `AVLTree` Trade Offs
 
-> `HashTable` has a worst case insertion complexity of `O(N)` and best case `O(1)` complexity. `AVLTree` consistently has complexity `O(logN)` for its insertion. In this context, where the number of scene actors is not significant, these differences don't matter much. For getting a value though, `HashTable` has a typical complexity of `O(1)` whereas `AVLTree` consistently has a higher `O(logN)` complexity. As such, for a series of values that is primarily only read from, `HashTable` is the better option
+`HashTable` has a worst case insertion complexity of `O(N)` and best case `O(1)` complexity. `AVLTree` consistently has complexity `O(logN)` for its insertion. 
+
+In this context, where the number of scene actors is not significant, these differences don't matter much. For getting a value though, `HashTable` has a typical complexity of `O(1)` whereas `AVLTree` consistently has a higher `O(logN)` complexity. 
+
+As such, for a series of values that is primarily only read from, `HashTable` is the better option
 
 ### 8 - Alternative Design Sketch
 
