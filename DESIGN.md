@@ -1,3 +1,11 @@
+```
+Grant Rynders
+Class: CS3100
+Assigment: Project 6
+Professor: James Anderson
+Due Data: 12/5/25
+```
+
 ### 1.A - Introduction
 
 My design will model the scene dataset for a given loading zone. The `SceneTable` datastructure will be based off of `HashTable<>`
@@ -92,7 +100,9 @@ std::pair<SFX* voice_ptr, GameText* text_ptr> SceneTable::GetDialogue(size_t act
     try
     {
         Actor* actor = this->get(actor_id);
-        std::pair<SFX* voice_ptr, GameText* text_ptr> dialogue_pair(actor->get_voice(this->scene_id), actor->get_dialogue_text(this->scene_id));
+        SFX* voice = actor->get_voice(this->scene_id);
+        GameText* game_text = actor->get_dialogue_text(this->scene_id);
+        std::pair<SFX* voice_ptr, GameText* text_ptr> dialogue_pair(voice,game_text);
         return dialogue_pair;
     }
     catch (...)
