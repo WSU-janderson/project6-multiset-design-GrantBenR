@@ -51,13 +51,13 @@ The design of a system like this should be as simple and as lightweight as possi
 ### 3 - Core Operations
 
 > As a hashtable derivative you definitely want your basic CRUD actions
-- insert(id)
+- + insert(id): bool // O(1)-O(N)
 > At the intialization of a scene, all the necessary actors are inserted.
-- update(id)
-- delete(id)
-- get(id)
+- + update(id): bool // O(1)-O(N)
+- + delete(id): bool // O(1)-O(N)
+- + get(id): bucket* // O(1)
 > The scene should be able to fetch the pointers to the actor's data 
-- resize_table()
+- - resize_table(): bool // O(N)
 > As with other hashtables, the table size increases capacity when enough are added.
 
 ### 4 - Set Operations
@@ -126,21 +126,22 @@ classDiagram
     SceneTable <|-- HashTable
     SceneTable --|> Actor
     class SceneTable{
-        -std::vector&lt;Actor*&gt table
-        +RenderSceneActors(): Actor*[]
-        +GetDialogue(): std::pair&lt;SFX* voice_ptr, GameText* text_ptr&gt
+        - std::vector&lt;Actor*&gt table
+        + RenderSceneActors(): Actor*[]
+        + GetDialogue(): std::pair&lt;SFX* voice_ptr, GameText* text_ptr&gt
     }
     class Actor{
-        +size_t actor_id
-        +size_t voices_id
-        +size_t text_id
+        + size_t actor_id
+        + size_t voices_id
+        + size_t text_id
     }
     class HashTable{
         - std::vector&lt;bucket*&gt table
         + insert(id): bool // O(1)-O(N)
-        + update(id): bool // O(1)-O(N)
-        + delete(id): bool // O(1)-O(N)
+        + update(id): bool // O(1)
+        + delete(id): bool // O(1)
         + get(id): bucket* // O(1)
+        - resize_table(): bool // O(N)
     }
 ```
 
@@ -170,6 +171,7 @@ class HashTable{
     + update(id): bool // O(1)
     + delete(id): bool // O(1)
     + get(id): bucket* // O(1)
+    
 }
 
 class Sequence{
@@ -200,9 +202,10 @@ Some basic tests to perform would be to compare load times between structures wh
 
 This design for a scene data table works because once it is set up, most actions performed on it have `O(1)` time complexity resulting in low performance overhead. While a `Sequence` or `AVLTree` are more performant to initialize at scale, because the other actions performed on the table significantly exceed that of the initialization, it performs better overall.
 
-The `SceneTable` implementation has a low level of abstractio with the core functions of searching and indexing being made as fast and as simple as possible. It is a simple idea, and a simple execution that results in a low performance overhead. The encapsulation is very good since the load times will be non-substantial, and the end user will not realize the extent of the behind-the-scenes work being done <a href="#1">[1]</a>. Other systems in the game will be able to easily access data for the `actor_id` resulting in a composition where the program does not have to know much of anything about how `SceneTable` even works. New methods can easily be implemented that take advantage of its simple `HashTable` derived CRUD operations.
+The `SceneTable` implementation has a low level of abstractio with the core functions of searching and indexing being made as fast and as simple as possible. It is a simple idea, and a simple execution that results in a low performance overhead. The encapsulation is very good since the load times will be non-substantial, and the end user will not realize the extent of the behind-the-scenes work being done <a href="#2">[1]</a>. Other systems in the game will be able to easily access data for the `actor_id` resulting in a composition where the program does not have to know much of anything about how `SceneTable` even works. New methods can easily be implemented that take advantage of its simple `HashTable` derived CRUD operations.
 
 ### Works Cited
 
-<div id="1">[1] Cahill, Vinny. *Learning to Program the Object-Oriented Way with C#*. pp221-249. https://link.springer.com/chapter/10.1007/978-1-4471-0115-4_7.</div>
+<div id="1"></div>
 
+<div id="2">[1] Cahill, Vinny. *Learning to Program the Object-Oriented Way with C#*. pp221-249. https://link.springer.com/chapter/10.1007/978-1-4471-0115-4_7.</div>
