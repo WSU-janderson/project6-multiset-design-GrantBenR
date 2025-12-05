@@ -14,7 +14,18 @@ For some background, I am in the process of a Ghidra reverse engineering project
 - Actor
 
     The term the game uses for its characters, whether the player (Adol Christin), NPCs, or enemies. They have associated string IDs just like the scenes.
-    ![Adol Christin from Ys VI](https://github.com/WSU-janderson/project6-multiset-design-GrantBenR/blob/main/images/ys_vi_scenes.png?raw=true "Adol Christin from Ys VI")
+
+    Player (Adol)
+    ---
+    ![Adol Christin from Ys VI](https://raw.githubusercontent.com/WSU-janderson/project6-multiset-design-GrantBenR/refs/heads/main/images/ys_vi_actor_adol.png "Adol Christin from Ys VI")
+
+    Enemy
+    ---
+    ![Example rhino enemy from Ys VI](https://raw.githubusercontent.com/WSU-janderson/project6-multiset-design-GrantBenR/refs/heads/main/images/ys_vi_actor_enemy.png "Example rhino enemy from Ys VI")
+
+    NPC
+    ---
+    ![Example NPC from Ys VI (DOGI!!!)](https://raw.githubusercontent.com/WSU-janderson/project6-multiset-design-GrantBenR/refs/heads/main/images/ys_vi_actor_enemy.png "Example NPC from Ys VI")
 
 
 In a setup with voice acting, where dialogue is given to the player line-by-line, each line has an associated chunk of voice acting. A given actor when loaded into a scene should have an associated actor ID and the game should have a scenario ID which determines what the actor says or doesn't say at that part of the game progression. This hashtable should contain the dataset of actors and their metadata for a given scene ID. When the sprites are loaded into memory, they are pulled from this table at an `actor_id` index. When the player speaks with a friendly actor, the appropriate dialogue text and voice lines should be able to be accessed in the same way.
