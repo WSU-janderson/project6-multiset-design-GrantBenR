@@ -4,9 +4,20 @@ My design will model the scene dataset for a given loading zone. The datastructu
 
 For some background, I am in the process of a Ghidra reverse engineering project for `Ys VI: The Ark of Napishtim` on Windows, and I got the idea from my work on that game. YS VI uses a system where game actors (characters, the player, enemies, etc.) have unique IDs that are used to fetch their dialogue, sprites, and other metadata. However, outside of the PS2 remake, the game lacks voice acting. As such, I have been trying to mod in voice acting to existing dialogue functions. In the original system, a pointer to the dialogue is found using the ID, and the lines are fed to the display in a single string seperated by separators.
 
-In a setup with voice acting, where dialogue is given to the player line-by-line, each line has an associated chunk of voice acting. A given actor when loaded into a scene should have an associated actor ID and the game should have a scenario ID which determines what the actor says or doesn't say at that part of the game progression. This hashtable should contain the dataset of actors and their metadata for a given scene ID. When the sprites are loaded into memory, they are pulled from this table at an `actor_id` index. When the player speaks with a friendly actor, the appropriate dialogue text and voice lines should be able to be accessed in the same way.
+### Review of Terms
+- Scene
+    
+    Each level in Ys Vi is split into loading zones or **"scenes"** that have a unique ID (i.e. `s_5502`) that helps the game find the data for the scene (models, actors, etc.).
 
-![wamb]("https://github.com/GrantBenR/YsViDecomp/blob/main/GameDefinitions/MapsWithFileNames/Map_LimewaterCave.pdf")
+![Map of scenes in limewater cave from Ys VI](https://github.com/WSU-janderson/project6-multiset-design-GrantBenR/blob/main/images/ys_vi_scenes.png?raw=true "Map of Limewater Cave from Ys VI by Author")
+
+- Actor
+
+    The term the game uses for its characters, whether the player (Adol Christin), NPCs, or enemies. They have associated string IDs just like the scenes.
+    ![Adol Christin from Ys VI](https://github.com/WSU-janderson/project6-multiset-design-GrantBenR/blob/main/images/ys_vi_scenes.png?raw=true "Adol Christin from Ys VI")
+
+
+In a setup with voice acting, where dialogue is given to the player line-by-line, each line has an associated chunk of voice acting. A given actor when loaded into a scene should have an associated actor ID and the game should have a scenario ID which determines what the actor says or doesn't say at that part of the game progression. This hashtable should contain the dataset of actors and their metadata for a given scene ID. When the sprites are loaded into memory, they are pulled from this table at an `actor_id` index. When the player speaks with a friendly actor, the appropriate dialogue text and voice lines should be able to be accessed in the same way.
 
 2. Design Philosophy
 
