@@ -152,7 +152,7 @@ classDiagram
 ### 7.1 - `Sequence` Trade Offs
 > The main alternative for this multiset's underlying data-structure would be a `Sequence` (std::vector). A `HashTable` is already simply a more complex wrapper for a std::vector, so realistically, a `Sequence` would be more lightweight to implement.
 
-> However, assuming an actor has the same ID across scenes, then when making the vector you wouldn't have a clean `[1,2,3,4,5...]`of ID values (it would be something like `[t_200,t_700,t_567,t_890...]` which is not cleanly searchable). As such, either you would hash the values (which is just a `HashTable` `O(1)` search) or insert them in the order of appearance making the search complexity `O(N)`. As such, given that the IDs are unique, a `HashTable` is simply the better option, especially in large scenes with lots of actors.
+> However, assuming an actor has the same ID across scenes, then when making the vector you wouldn't have a clean `[1,2,3,4,5...]`of ID values (it would be something like `[t_200,t_700,t_567,t_890...]` which is not cleanly searchable). As such, either you would hash the values (which is just a `HashTable` `O(1)` search) or insert them in the order of appearance making the search complexity `O(N)`. As such, given that the IDs are unique, a `HashTable` is simply the better option, especially in large scenes with lots of actors <a href="#1">[1]</a>.
 
 ### 7.2 - `AVLTree` Trade Offs
 
@@ -196,16 +196,16 @@ class AVLTree{
 
 ### 9 - Evaluation Plan
 
-Some basic tests to perform would be to compare load times between structures when entering a new scene. If performing `get` actions on the table is slowing down gamespeed a solution with less functionality may need to be explored. How many times the `HashTable` needs to be resized would be the most costly operation performance-wise, so putting breakpoints on that happening is another good way to gauge performance.
+Some basic tests to perform would be to compare load times between structures when entering a new scene. If performing `get` actions on the table is slowing down gamespeed a solution with less functionality may need to be explored. How many times the `HashTable` needs to be resized would be the most costly operation performance-wise, so putting breakpoints on that happening is another good way to gauge performance. The underlying data structure of the `SceneTable` should not necessarily affect the outside program: the program should just be able to ask for data and get it.
 
 ### 10 - Conclusion/Reflection
 
 This design for a scene data table works because once it is set up, most actions performed on it have `O(1)` time complexity resulting in low performance overhead. While a `Sequence` or `AVLTree` are more performant to initialize at scale, because the other actions performed on the table significantly exceed that of the initialization, it performs better overall.
 
-The `SceneTable` implementation has a low level of abstractio with the core functions of searching and indexing being made as fast and as simple as possible. It is a simple idea, and a simple execution that results in a low performance overhead. The encapsulation is very good since the load times will be non-substantial, and the end user will not realize the extent of the behind-the-scenes work being done <a href="#2">[1]</a>. Other systems in the game will be able to easily access data for the `actor_id` resulting in a composition where the program does not have to know much of anything about how `SceneTable` even works. New methods can easily be implemented that take advantage of its simple `HashTable` derived CRUD operations.
+The `SceneTable` implementation has a low level of abstractio with the core functions of searching and indexing being made as fast and as simple as possible. It is a simple idea, and a simple execution that results in a low performance overhead. The encapsulation is very good since the load times will be non-substantial, and the end user will not realize the extent of the behind-the-scenes work being done <a href="#2">[2]</a>. Other systems in the game will be able to easily access data for the `actor_id` resulting in a composition where the program does not have to know much of anything about how `SceneTable` even works. New methods can easily be implemented that take advantage of its simple `HashTable` derived CRUD operations.
 
 ### Works Cited
 
-<div id="1"></div>
+<div id="1">[1] Karimov, Elshad. *Data Structures and Algorithms in Swift*. Apress, Berkeley, CA. pp55-60. 2020. https://doi.org/10.1007/978-1-4842-5769-2_7. </div>
 
-<div id="2">[1] Cahill, Vinny. *Learning to Program the Object-Oriented Way with C#*. pp221-249. https://link.springer.com/chapter/10.1007/978-1-4471-0115-4_7.</div>
+<div id="2">[2] Cahill, Vinny. *Learning to Program the Object-Oriented Way with C#*. Springer-Verlag London. pp221-249. 2002. https://link.springer.com/chapter/10.1007/978-1-4471-0115-4_7.</div>
