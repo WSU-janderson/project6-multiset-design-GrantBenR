@@ -1,10 +1,11 @@
-1. Introduction
+### 1.A - Introduction
 
 My design will model the scene dataset for a given loading zone. The datastructure will be based off of `HashTable<>`
 
-For some background, I am in the process of a Ghidra reverse engineering project for `Ys VI: The Ark of Napishtim` on Windows, and I got the idea from my work on that game. YS VI uses a system where game actors (characters, the player, enemies, etc.) have unique IDs that are used to fetch their dialogue, sprites, and other metadata. However, outside of the PS2 remake, the game lacks voice acting. As such, I have been trying to mod in voice acting to existing dialogue functions. In the original system, a pointer to the dialogue is found using the ID, and the lines are fed to the display in a single string seperated by separators.
+### 1.B - Background
+For some background, I am in the process of a Ghidra reverse engineering project for `Ys VI: The Ark of Napishtim` on Windows, and I got the idea from my work on that game. YS VI uses a system where game actors (characters, the player, enemies, etc.) have unique IDs that are used to fetch their dialogue, sprites, and other metadata. However, outside of the PS2 remake, the game lacks voice acting. As such, I have been trying to mod in voice acting to existing dialogue functions. In the original system, a pointer to the dialogue is found using the actor's ID and a scene identifier, and the lines are fed to the display in a single delimited string.
 
-### Review of Terms
+### 1.C - Review of Terms
 - Scene
     
     Each level in Ys Vi is split into loading zones or **"scenes"** that have a unique ID (i.e. `s_5502`) that helps the game find the data for the scene (models, actors, etc.).
@@ -13,28 +14,41 @@ For some background, I am in the process of a Ghidra reverse engineering project
 
 - Actor
 
-    The term the game uses for its characters, whether the player (Adol Christin), NPCs, or enemies. They have associated string IDs just like the scenes.
+    The term the game uses for its characters, whether the player, NPCs, or enemies. They have associated string IDs just like the scenes.
 
-    Player (Adol)
     ---
+
+    - Player (Adol)
+
     ![Adol Christin from Ys VI](https://raw.githubusercontent.com/WSU-janderson/project6-multiset-design-GrantBenR/refs/heads/main/images/ys_vi_actor_adol.png "Adol Christin from Ys VI")
 
-    Enemy
+    - Moves around and talks (best of both worlds)
+
     ---
+
+    - Enemy
+
     ![Example rhino enemy from Ys VI](https://raw.githubusercontent.com/WSU-janderson/project6-multiset-design-GrantBenR/refs/heads/main/images/ys_vi_actor_enemy.png "Example rhino enemy from Ys VI")
+    
+    - Moves around but doesn't talk
 
-    NPC
     ---
-    ![Example NPC from Ys VI (DOGI!!!)](https://raw.githubusercontent.com/WSU-janderson/project6-multiset-design-GrantBenR/refs/heads/main/images/ys_vi_actor_enemy.png "Example NPC from Ys VI")
 
+    - NPC
 
-In a setup with voice acting, where dialogue is given to the player line-by-line, each line has an associated chunk of voice acting. A given actor when loaded into a scene should have an associated actor ID and the game should have a scenario ID which determines what the actor says or doesn't say at that part of the game progression. This hashtable should contain the dataset of actors and their metadata for a given scene ID. When the sprites are loaded into memory, they are pulled from this table at an `actor_id` index. When the player speaks with a friendly actor, the appropriate dialogue text and voice lines should be able to be accessed in the same way.
+    ![Example NPC from Ys VI (DOGI!!!)](https://github.com/WSU-janderson/project6-multiset-design-GrantBenR/blob/main/images/ys_vi_actor_npc.png?raw=true "Example NPC from Ys VI")
 
-2. Design Philosophy
+    - Talks but doesn't move around
+
+### 1.D - Design goal
+
+The
+
+### 2 - Design Philosophy
 
 The design of a system like this should be as simple and as lightweight as possible, but something that is flexible for the needs of a given game scene. The hashtable will take in a raw dataset from the game data when a scene is loaded in. This process should be streamlined for fast load times even in large or busy scenes with lots of actors.
 
-3. Core Operations
+### 3 - Core Operations
 
 > As a hashtable derivative you definitely want your basic CRUD actions
 - insert(id)
@@ -46,7 +60,7 @@ The design of a system like this should be as simple and as lightweight as possi
 - resize_table()
 > As with other hashtables, the table size increases capacity when enough are added.
 
-4. Set Operations
+### 4 - Set Operations
 
 - SceneTable(scene_data*): int
 > Initialize the table on loading into scene from raw data.
@@ -66,7 +80,7 @@ int SceneTable::SceneTable(SceneData* scene_data)
     return 0;
 }
 ```
-5. Extension Feature
+### 5 - Extension Feature
 
 - GetDialogue(actor_id): (audio*, text*)
 > Returns pointers to raw audio and text values in the game data that are fed to the game front end functions. The text and audio have delimiters so that the display and audio functions know how many lines are in the dialogue and where the raw data begins and ends.
@@ -99,7 +113,7 @@ Actor*[] SceneTable::RenderSceneActors()
 }
 ```
 
-6. UML Diagram / Abstraction Boundary
+### 6 - UML Diagram / Abstraction Boundary
 
 
 
@@ -112,7 +126,7 @@ classDiagram
     SceneTable <|-- HashTable
     SceneTable --|> Actor
     class SceneTable{
-        -std::vector table
+        -std::vector&lt;Actor*&gt table
         +RenderSceneActors(): Actor*[]
         +GetDialogue(): std::pair&lt;SFX* voice_ptr, GameText* text_ptr&gt
     }
@@ -122,28 +136,66 @@ classDiagram
         +size_t text_id
     }
     class HashTable{
-        - std::vector&lt;Actor*&gt table
-        + insert(id): bool
-        + update(id): bool
-        + delete(id): bool
-        + get(id): 
+        - std::vector&lt;bucket*&gt table
+        + insert(id): bool // O(1)-O(N)
+        + update(id): bool // O(1)-O(N)
+        + delete(id): bool // O(1)-O(N)
+        + get(id): bucket* // O(1)
     }
 ```
 
-7. Trade Off Analysis
+### 7.0 - Trade Off Analysis
 
+> Below are some comparisons to other possible data structures:
+
+### 7.1 - `Sequence` Trade Offs
 > The main alternative for this multiset's underlying data-structure would be a `Sequence` (std::vector). A `HashTable` is already simply a more complex wrapper for a std::vector, so realistically, a `Sequence` would be more lightweight to implement.
 
 > However, assuming an actor has the same ID across scenes, then when making the vector you wouldn't have a clean `[1,2,3,4,5...]`of ID values (it would be something like `[t_200,t_700,t_567,t_890...]` which is not cleanly searchable). As such, either you would hash the values (which is just a `HashTable` `O(1)` search) or insert them in the order of appearance making the search complexity `O(N)`. As such, given that the IDs are unique, a `HashTable` is simply the better option, especially in large scenes with lots of actors.
 
-> An `AVLTree`
+### 7.2 - `AVLTree` Trade Offs
 
-8. Alternative Design Sketch
+> `HashTable` has a worst case insertion complexity of `O(N)` and best case `O(1)` complexity. `AVLTree` consistently has complexity `O(logN)` for its insertion. In this context, where the number of scene actors is not significant, these differences don't matter much. For getting a value though, `HashTable` has a typical complexity of `O(1)` whereas `AVLTree` consistently has a higher `O(logN)` complexity. As such, for a series of values that is primarily only read from, `HashTable` is the better option
 
+### 8 - Alternative Design Sketch
 
+```mermaid
+---
+title: Alternative Designs Compared
+---
+classDiagram
+class HashTable{
+    - std::vector&lt;bucket*&gt table
+    + insert(id): bool // O(1)-O(N)
+    + update(id): bool // O(1)-O(N)
+    + delete(id): bool // O(1)-O(N)
+    + get(id): bucket* // O(1)
+}
 
-9. Evaluation Plan
+class Sequence{
+    + SequenceNode* root
+    + SequenceNode* tail
+    + size_t size
+    + insert(id): bool // O(N)
+    + update(id): bool // O(N)
+    + delete(id): bool // O(N)
+    + get(id): bool // O(N)
+}
 
-10. Conclusion/Reflection
+class AVLTree{
+    + AVLNode* root
+    + size_t size
+    + insert(id): bool // O(logN)
+    + update(id): bool // O(logN)
+    + delete(id): bool // O(logN)
+    + get(id): bool // O(logN)
+}
+```
+
+### 9 - Evaluation Plan
+
+Some basic tests to perform would be to compare load times between structures when entering a new scene.
+
+### 10 - Conclusion/Reflection
 
 # !!!!!!!!!! MAKE A PDF !!!!!!!!
